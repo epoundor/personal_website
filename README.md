@@ -20,16 +20,3 @@ python3 -m http.server 8000
 ```
 
 Then visit `http://localhost:8000`.
-
-## Deployment
-
-Hosted on GitHub Pages at [epoundor.xyz](https://epoundor.xyz), served from the `main` branch root. The `CNAME` file configures the custom domain.
-
-To point a new domain here:
-
-1. Enable Pages in the repo settings (Settings → Pages → Source: `main` / `/root`).
-2. Add a `CNAME` file at the repo root containing the domain.
-3. At your DNS provider, add:
-   - `A` records for the apex domain → `185.199.108.153`, `185.199.109.153`, `185.199.110.153`, `185.199.111.153`
-   - `CNAME` record for `www` → `epoundor.github.io`
-4. Once DNS propagates, enable "Enforce HTTPS" in the Pages settings.
