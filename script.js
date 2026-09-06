@@ -1,9 +1,10 @@
 const GITHUB_USERNAME = "epoundor";
 const LINKEDIN_URL = "https://www.linkedin.com/in/freedauss-epoundor-tanda/";
 const EMAIL = "freedausstanda@gmail.com";
-const SPOTIFY_PLAYLIST_URL="https://open.spotify.com/playlist/40QfF7iX1X90xP37Q4s7Fm?si=0d3a99a2002246c3&pt=42aa9a6a6a6a6a6a6a6a6a6a6a6a6a6a";
+const SPOTIFY_PLAYLIST_URL="https://open.spotify.com/playlist/5JIxTjQ6Mgv5nLd4yy7F8e?utm_source=native-share-menu&pi=pdf7llMRS2eiE";
 const FAMILY_PHOTO_SRC = "epoundor_family.JPG";
 const GRASS_PHOTO_SRC = "epoundor_after_running.JPG";
+const CV_LINK = "https://docs.google.com/document/d/1PDHW-CzmBi-bVykSQidmtsimGjbUgSTqqX7UJkaT1C0/export?format=pdf";
 
 const thread = document.getElementById("thread");
 const promptWrap = document.getElementById("promptWrap");
@@ -215,6 +216,16 @@ const RESPONSES = [
     },
   },
   {
+    key: "cv",
+    triggers: ["cv", "resume", "download cv", "download resume", "his cv", "his resume", "see his cv", "send his cv"],
+    build: () => `
+      Here's his CV — up to date, mostly honest.
+      <div class="ref-grid">
+        ${refCard({ href: CV_LINK, host: "docs.google.com", title: "Download CV", desc: "PDF export, opens in a new tab" })}
+      </div>
+    `,
+  },
+  {
     key: "contact",
     triggers: ["contact", "reach him", "get in touch", "how do i contact him"],
     build: () => `
@@ -259,7 +270,7 @@ function addTypingIndicator() {
   const el = document.createElement("div");
   el.className = "msg assistant typing-msg";
   el.innerHTML = `
-    <div class="avatar-row"><span class="avatar">e</span><span class="model-name">epoundor-5-turbo</span></div>
+    <div class="avatar-row"><span class="avatar"></span><span class="model-name">epoundor-5-turbo</span></div>
     <div class="typing"><span></span><span></span><span></span></div>
   `;
   thread.appendChild(el);
@@ -271,7 +282,7 @@ function addAssistantMessage(html) {
   const el = document.createElement("div");
   el.className = "msg assistant";
   el.innerHTML = `
-    <div class="avatar-row"><span class="avatar">e</span><span class="model-name">epoundor-5-turbo</span></div>
+    <div class="avatar-row"><span class="avatar"></span><span class="model-name">epoundor-5-turbo</span></div>
     <div class="body">${html}</div>
   `;
   thread.appendChild(el);

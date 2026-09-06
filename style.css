@@ -126,14 +126,9 @@ html, body {
 .msg.assistant .avatar {
   width: 22px;
   height: 22px;
-  border-radius: 6px;
-  background: var(--accent);
-  color: #FAF9F5;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-serif);
-  font-size: 13px;
+  background-image: url("favicon.png");
+  background-size: cover;
+  background-position: center;
   flex-shrink: 0;
 }
 
@@ -340,6 +335,12 @@ html, body {
   align-items: center;
   gap: 8px;
   padding: 14px 18px 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.chip-row::-webkit-scrollbar {
+  display: none;
 }
 
 .at-icon {
@@ -367,6 +368,8 @@ html, body {
   padding: 0 10px;
   font-size: 13px;
   font-family: var(--font-mono);
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .file-chip .dot {
@@ -395,7 +398,7 @@ textarea#promptInput {
   margin: 14px 18px 0;
   width: calc(100% - 36px);
   padding: 10px 14px;
-  font-size: 15px;
+  font-size: 16px;
   font-family: var(--font-mono);
   color: var(--text);
   line-height: 1.6;
@@ -530,4 +533,12 @@ textarea#promptInput:focus {
 @media (max-width: 640px) {
   .social-nav { display: none; }
   .thread { padding-bottom: 220px; }
+}
+
+@media (max-width: 400px) {
+  .stage { padding: 12px; }
+  .chip-row { padding: 12px 14px 0; }
+  textarea#promptInput { margin: 12px 14px 0; width: calc(100% - 28px); }
+  .controls-row { flex-wrap: wrap; row-gap: 10px; padding: 12px 14px; }
+  .pill.ghost { padding: 0 8px; }
 }
