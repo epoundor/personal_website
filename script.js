@@ -1,11 +1,13 @@
 const GITHUB_USERNAME = "epoundor";
 const LINKEDIN_URL = "https://www.linkedin.com/in/freedauss-epoundor-tanda/";
 const EMAIL = "freedausstanda@gmail.com";
-const SPOTIFY_PLAYLIST_URL="https://open.spotify.com/playlist/5JIxTjQ6Mgv5nLd4yy7F8e?utm_source=native-share-menu&pi=pdf7llMRS2eiE";
+const SPOTIFY_PLAYLIST_URL =
+  "https://open.spotify.com/playlist/5JIxTjQ6Mgv5nLd4yy7F8e?utm_source=native-share-menu&pi=pdf7llMRS2eiE";
 const FAMILY_PHOTO_SRC = "./images/epoundor_family.JPG";
 const GRASS_PHOTO_SRC = "./images/epoundor_after_running.JPG";
 const BRUH_PHOTO_SRC = "./images/bruh.gif";
-const CV_LINK = "https://docs.google.com/document/d/1PDHW-CzmBi-bVykSQidmtsimGjbUgSTqqX7UJkaT1C0/export?format=pdf";
+const CV_LINK =
+  "https://docs.google.com/document/d/1PDHW-CzmBi-bVykSQidmtsimGjbUgSTqqX7UJkaT1C0/export?format=pdf";
 import { PROJECTS } from "./projects.js";
 
 const thread = document.getElementById("thread");
@@ -32,7 +34,7 @@ function makeId(prefix = "ref") {
 function footnote(text, refId) {
   return `<span class="footnote" data-ref="${refId}">${text}<sup>[${refId.split("-")[1]}]</sup></span>`;
 }
-function inlineSuggestion(text,prompt) {
+function inlineSuggestion(text, prompt) {
   return `<span class="inline-suggestion" data-prompt="${prompt}">${text}</span>`;
 }
 
@@ -62,7 +64,9 @@ async function loadContribGraph(wrapId) {
   const wrap = document.getElementById(wrapId);
   if (!wrap) return;
   try {
-    const res = await fetch(`https://github-contributions-api.jogruber.de/v4/${encodeURIComponent(GITHUB_USERNAME)}?y=last`);
+    const res = await fetch(
+      `https://github-contributions-api.jogruber.de/v4/${encodeURIComponent(GITHUB_USERNAME)}?y=last`,
+    );
     if (!res.ok) throw new Error("bad response");
     const data = await res.json();
     const days = data.contributions || [];
@@ -79,7 +83,10 @@ async function loadContribGraph(wrapId) {
     });
 
     const cells = weeks
-      .map((week) => `<div class="contrib-col">${week.map((d) => `<span class="contrib-cell" data-level="${d.level}" title="${d.date}: ${d.count} contribution${d.count === 1 ? "" : "s"}"></span>`).join("")}</div>`)
+      .map(
+        (week) =>
+          `<div class="contrib-col">${week.map((d) => `<span class="contrib-cell" data-level="${d.level}" title="${d.date}: ${d.count} contribution${d.count === 1 ? "" : "s"}"></span>`).join("")}</div>`,
+      )
       .join("");
 
     wrap.innerHTML = `
@@ -99,9 +106,11 @@ async function fetchJokes() {
   if (!validLanguages.includes(language)) {
     language = "en";
   }
-  
+
   try {
-    const res = await fetch(`https://v2.jokeapi.dev/joke/Programming,Dark?lang=${language}&blacklistFlags=sexist,explicit&format=txt`);
+    const res = await fetch(
+      `https://v2.jokeapi.dev/joke/Programming,Dark?lang=${language}&blacklistFlags=sexist,explicit&format=txt`,
+    );
     if (!res.ok) throw new Error("bad response");
     const joke = await res.text();
     return joke;
@@ -113,16 +122,19 @@ async function fetchJokes() {
 async function loadJokes(jokeId) {
   const wrap = document.getElementById(jokeId);
   if (!wrap) return;
-  
+
   const joke = await fetchJokes();
+
+  // format with <br> before each "\n\n"
+  const formattedJoke = joke.replace(/\n\n/g, "<br>");
   const jokeElement = document.getElementById(jokeId);
+
   jokeElement.innerHTML = `
     <div class="joke-content">
-      <p>${joke}</p>
+      <p>${formattedJoke}</p>
     </div>
   `;
-    // scrollThreadToBottom();
-
+  // scrollThreadToBottom();
 }
 
 /* ---------- canned Q&A content ---------- */
@@ -134,92 +146,109 @@ function getVariation(variations) {
 const RESPONSES = [
   {
     key: "facts",
-    triggers: ["top 5 facts", "top5 facts", "facts about him", "tell me about him", "fun facts", "les 5 choses les plus intéressantes", "top 5 des choses les plus intéressantes","Quelques informations sur lui", "Dis-moi des choses sur lui"],
+    triggers: [
+      "top 5 facts",
+      "top5 facts",
+      "facts about him",
+      "tell me about him",
+      "fun facts",
+      "les 5 choses les plus intéressantes",
+      "top 5 des choses les plus intéressantes",
+      "Quelques informations sur lui",
+      "Dis-moi des choses sur lui",
+    ],
     build: () => {
+      setTimeout(() => {
+        wireInlineSuggestions();
+      }, 0);
       const variations = [
         `
         &bull; Writing software for a few years now<br>
         &bull; Currently deep in a side project he swears he'll finish <a href="https://stakpass.com" target="_blank" rel="noopener noreferrer">(visit StakPass)</a><br>
         &bull; Enjoys tinkering with things that don't need tinkering<br>
-        &bull; Thinks he's funnier than he actually is<br>
+        &bull; Thinks he's ${inlineSuggestion("funnier", "tell me a joke")} than he actually is<br>
         &bull; Is, notably, bad at talking about himself
-    `
-  ,
-  `
+    `,
+        `
       &bull; Has been shipping software for a few years<br>
       &bull; Chipping away at a side project he insists he'll ship <a href="https://stakpass.com" target="_blank" rel="noopener noreferrer">(visit StakPass)</a><br>
       &bull; Rap and movies take up more headspace than they should <a href="${SPOTIFY_PLAYLIST_URL}" target="_blank" rel="noopener noreferrer">(playlist here)</a><br>
-      &bull; Thinks his jokes land more than they do<br>
+      &bull; Thinks his ${inlineSuggestion("jokes", "tell me a joke")} land more than they do<br>
       &bull; Struggles to say anything real about himself
   `,
-      `
+        `
       &bull; Been writing code for a few years now<br>
       &bull; Currently buried in a side project he swears is almost done <a href="https://stakpass.com" target="_blank" rel="noopener noreferrer">(visit StakPass)</a><br>
       &bull; Likes fixing things that were already working fine<br>
-      &bull; Convinced he's funnier than he is<br>
+      &bull; Convinced he's ${inlineSuggestion("funnier", "tell me a joke")} than he is<br>
       &bull; Genuinely terrible at talking about himself
   `,
-  `
+        `
       &bull; Has been shipping software for a few years<br>
       &bull; Chipping away at a side project he insists he'll ship <a href="https://stakpass.com" target="_blank" rel="noopener noreferrer">(visit StakPass)</a><br>
       &bull; Can't leave a working thing alone<br>
-      &bull; Thinks his jokes land more than they do<br>
+      &bull; Thinks his ${inlineSuggestion("jokes", "tell me a joke")} land more than they do<br>
       &bull; Struggles to say anything real about himself
   `,
-  `
+        `
       &bull; Been writing code for a few years now<br>
       &bull; Currently buried in a side project he swears is almost done <a href="https://stakpass.com" target="_blank" rel="noopener noreferrer">(visit StakPass)</a><br>
       &bull; Likes fixing things that were already working fine<br>
       &bull; Big into rap and cinema <a href="${SPOTIFY_PLAYLIST_URL}" target="_blank" rel="noopener noreferrer">(his playlist)</a><br>
-      &bull; Convinced he's funnier than he is<br>
+      &bull; Convinced he's ${inlineSuggestion("funnier", "tell me a joke")} than he is<br>
   `,
-  `
+        `
       &bull; A few years into writing software, still going<br>
       &bull; Deep in a side project that's "almost finished" <a href="https://stakpass.com" target="_blank" rel="noopener noreferrer">(visit StakPass)</a><br>
       &bull; Tinkers with stuff that didn't need it<br>
       &bull; Rap and cinema, in heavy rotation <a href="${SPOTIFY_PLAYLIST_URL}" target="_blank" rel="noopener noreferrer">(the playlist)</a><br>
       &bull; Rates his own humor higher than everyone else does<br>
   `,
-  `
+        `
       &bull; Has been shipping software for a few years now<br>
       &bull; Chipping away at a side project he insists he'll ship <a href="https://stakpass.com" target="_blank" rel="noopener noreferrer">(visit StakPass)</a><br>
       &bull; Can't leave a working thing alone<br>
-      &bull; Thinks his jokes land more than they do<br>
+      &bull; Thinks his ${inlineSuggestion("jokes", "tell me a joke")} land more than they do<br>
       &bull; Struggles to say anything real about himself
   `,
-  `
+        `
       &bull; Been writing code for a few years now<br>
       &bull; Currently buried in a side project he swears is almost done <a href="https://stakpass.com" target="_blank" rel="noopener noreferrer">(visit StakPass)</a><br>
       &bull; Likes fixing things that were already working fine<br>
       &bull; Loves writing, drops articles on <a href="https://dev.to/epoundev" target="_blank" rel="noopener noreferrer">dev.to</a><br>
       &bull; Deep into AI and all that comes with it<br>
 `,
-`
+        `
       &bull; Has been shipping software for a few years<br>
       &bull; Chipping away at a side project he insists he'll ship <a href="https://stakpass.com" target="_blank" rel="noopener noreferrer">(visit StakPass)</a><br>
       &bull; Writes when he can, mostly on <a href="https://dev.to/epoundev" target="_blank" rel="noopener noreferrer">dev.to</a><br>
       &bull; Follows AI stuff a little too closely<br>
-      &bull; Thinks his jokes land more than they do<br>
-      `
-
-    ]
-    return getVariation(variations);
-  }},
+      &bull; Thinks his ${inlineSuggestion("jokes", "tell me a joke")} land more than they do<br>
+      `,
+      ];
+      return getVariation(variations);
+    },
+  },
   {
-key: "jokes",
-triggers: ["joke", "tell me a joke", "say something funny"],
-  build:()=>{
-    const jokeId = makeId("joke");
-    setTimeout(() => {
-      loadJokes(jokeId);
-    }, 0);
-    return `<div id="${jokeId}" class="joke">
+    key: "jokes",
+    triggers: ["joke", "tell me a joke", "say something funny"],
+    build: () => {
+      const jokeId = makeId("joke");
+      setTimeout(() => {
+        loadJokes(jokeId);
+      }, 0);
+      return `<div id="${jokeId}" class="joke">
            </div>`;
-  }
+    },
   },
   {
     key: "rewrite",
-    triggers: ["rewrite for the professionals", "professional", "formal bio", "linkedin bio"],
+    triggers: [
+      "rewrite for the professionals",
+      "professional",
+      "formal bio",
+      "linkedin bio",
+    ],
     build: () => {
       const variations = [
         "epoundor is a software engineer with a growing body of work across the stack, currently focused on building things that are equal parts useful and slightly overengineered. He values clean code, strong coffee, and pretending he read the whole changelog.",
@@ -250,7 +279,7 @@ triggers: ["joke", "tell me a joke", "say something funny"],
       }, 0);
       return `
         Keeps ${footnote("shipping commits", githubRef)} on the regular,
-        built many side ${inlineSuggestion("projects","show me his projects")} that actually got ${footnote("some real users", stakpassRef)},
+        built many side ${inlineSuggestion("projects", "show me his projects")} that actually got ${footnote("some real users", stakpassRef)},
         lives with ${footnote("his fiancée and kids", familyRef)},
         and still finds time to ${footnote("touch grass", grassRef)} occasionally.
         ${contribGraphPlaceholder(contribId)}
@@ -265,7 +294,16 @@ triggers: ["joke", "tell me a joke", "say something funny"],
   },
   {
     key: "cv",
-    triggers: ["cv", "resume", "download cv", "download resume", "his cv", "his resume", "see his cv", "send his cv"],
+    triggers: [
+      "cv",
+      "resume",
+      "download cv",
+      "download resume",
+      "his cv",
+      "his resume",
+      "see his cv",
+      "send his cv",
+    ],
     build: () => `
       Here's his CV — up to date, mostly honest.
       <div class="ref-grid">
@@ -282,32 +320,60 @@ triggers: ["joke", "tell me a joke", "say something funny"],
       or <a href="mailto:${EMAIL}">email him</a>.
     `,
   },
-   {
+  {
     key: "projects",
-    triggers: ["projects", "show projects", "project", "show project", "show my projects", "list my projects", "list projects"],
+    triggers: [
+      "projects",
+      "show projects",
+      "project",
+      "show project",
+      "show my projects",
+      "list my projects",
+      "list projects",
+    ],
     build: () => `
       Here are some of his projects.
       <div class="project-grid">
-        ${ Object.entries(PROJECTS).map(([key, value]) => refCard({ href: value.link, host: value.link, title: key, desc: value.description })).join('')}
+        ${Object.entries(PROJECTS)
+          .map(([key, value]) =>
+            refCard({
+              href: value.link,
+              host: value.link,
+              title: key,
+              desc: value.description,
+            }),
+          )
+          .join("")}
       </div>
-      You can find more projects <a href="/projects">here</a>.
+      You can find more projects <a href="/projects.html">here</a>.
     `,
   },
   {
     key: "disgusting",
-    triggers: ["dick", "cock", "pussy", "slurpy","big black", "big black cock"],
+    triggers: [
+      "dick",
+      "cock",
+      "pussy",
+      "slurpy",
+      "big black",
+      "big black cock",
+    ],
     build: () => `
      Common rude boy, why would you ask that? 
      ${photoCard({ src: BRUH_PHOTO_SRC, alt: "Bruh.", caption: "Bruh." })}
     `,
-  }
+  },
 ];
 
 function matchResponse(input) {
   const normalized = input.trim().toLowerCase();
   if (!normalized) return null;
   for (const entry of RESPONSES) {
-    if (entry.triggers.some((t) => normalized.includes(t) || t.includes(normalized))) {
+    if (
+      entry.triggers.some(
+        (t) => normalized.includes(t) || t.includes(normalized),
+      )
+    ) {
       return entry;
     }
   }
@@ -355,29 +421,35 @@ function addAssistantMessage(html) {
   thread.appendChild(el);
   scrollThreadToBottom();
 }
-
-function wireFootnotesAndInlineSuggestion() {
+function wireFootnotes() {
   document.querySelectorAll(".footnote[data-ref]").forEach((node) => {
     if (node.dataset.wired) return;
     node.dataset.wired = "true";
     node.addEventListener("click", () => {
       const target = document.getElementById(node.dataset.ref);
-      if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
+      if (target)
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   });
-
-  document.querySelectorAll(".inline-suggestion[data-prompt]").forEach((node) => {
-    if (node.dataset.wired) return;
-    node.dataset.wired = "true";
-    node.addEventListener("click", () => {
-      const target = node.dataset.prompt;
-      promptInput.value = target;
-      handleSubmit(target);
-      promptInput.focus();
+}
+function wireInlineSuggestions() {
+  document
+    .querySelectorAll(".inline-suggestion[data-prompt]")
+    .forEach((node) => {
+      if (node.dataset.wired) return;
+      node.dataset.wired = "true";
+      node.addEventListener("click", () => {
+        const target = node.dataset.prompt;
+        promptInput.value = target;
+        handleSubmit(target);
+        promptInput.focus();
+      });
     });
-  });
+}
 
-
+function wireFootnotesAndInlineSuggestion() {
+  wireFootnotes();
+  wireInlineSuggestions();
 }
 
 function dockPrompt() {
@@ -397,13 +469,15 @@ function handleSubmit(rawText) {
   const typingEl = addTypingIndicator();
   const entry = matchResponse(text);
 
-  setTimeout(() => {
-    typingEl.remove();
-    addAssistantMessage(entry ? entry.build() : fallbackResponse());
-  }, 650 + Math.random() * 400);
+  setTimeout(
+    () => {
+      typingEl.remove();
+      addAssistantMessage(entry ? entry.build() : fallbackResponse());
+    },
+    650 + Math.random() * 400,
+  );
 
   // suggest another question to ask
-  
 }
 
 promptForm.addEventListener("submit", (e) => {

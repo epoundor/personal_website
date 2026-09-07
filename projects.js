@@ -25,3 +25,7 @@ export const PROJECTS = {
     "image": "/images/projects/Personal_Website.png"
   }
 };
+
+export const ALL_PROJECTS = {
+  ...PROJECTS
+}
