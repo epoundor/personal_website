@@ -143,9 +143,32 @@ function getVariation(variations) {
   return variations[Math.floor(Math.random() * variations.length)];
 }
 
+const GENERIC_FOLLOWUPS = [
+  "top 5 facts",
+  "rewrite for the professionals",
+  "what's he most proud of?",
+  "how do i contact him?",
+  "can i see his cv?",
+  "show me his projects",
+];
+
+function pickRandomFollowUps(n) {
+  const pool = [...GENERIC_FOLLOWUPS];
+  for (let i = pool.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  return pool.slice(0, n);
+}
+
 const RESPONSES = [
   {
     key: "facts",
+    followUps: [
+      "tell me a joke",
+      "show me his projects",
+      "what's he most proud of?",
+    ],
     triggers: [
       "top 5 facts",
       "top5 facts",
@@ -231,6 +254,7 @@ const RESPONSES = [
   },
   {
     key: "jokes",
+    followUps: ["tell me a joke", "top 5 facts"],
     triggers: ["joke", "tell me a joke", "say something funny"],
     build: () => {
       const jokeId = makeId("joke");
@@ -243,6 +267,7 @@ const RESPONSES = [
   },
   {
     key: "rewrite",
+    followUps: ["top 5 facts", "how do i contact him?"],
     triggers: [
       "rewrite for the professionals",
       "professional",
@@ -266,6 +291,7 @@ const RESPONSES = [
   },
   {
     key: "proudof",
+    followUps: ["show me his projects", "can i see his cv?"],
     triggers: ["most proud of", "proud of", "achievements", "accomplishments"],
     build: () => {
       const githubRef = makeId();
@@ -294,6 +320,7 @@ const RESPONSES = [
   },
   {
     key: "cv",
+    followUps: ["how do i contact him?", "show me his projects"],
     triggers: [
       "cv",
       "resume",
@@ -313,6 +340,7 @@ const RESPONSES = [
   },
   {
     key: "contact",
+    followUps: ["can i see his cv?", "show me his projects"],
     triggers: ["contact", "reach him", "get in touch", "how do i contact him"],
     build: () => `
       Add him on <a href="${LINKEDIN_URL}" target="_blank" rel="noopener noreferrer">LinkedIn</a>,
@@ -322,6 +350,7 @@ const RESPONSES = [
   },
   {
     key: "projects",
+    followUps: ["what's he most proud of?", "tell me a joke"],
     triggers: [
       "projects",
       "show projects",
@@ -350,6 +379,7 @@ const RESPONSES = [
   },
   {
     key: "disgusting",
+    followUps: [],
     triggers: [
       "dick",
       "cock",
@@ -411,12 +441,25 @@ function addTypingIndicator() {
   return el;
 }
 
-function addAssistantMessage(html) {
+function followupRow(prompts) {
+  if (!prompts || !prompts.length) return "";
+  return `<div class="msg-followups">
+    ${prompts
+      .map(
+        (p) =>
+          `<button type="button" class="suggestion-chip followup-chip" data-prompt="${escapeHtml(p)}">${escapeHtml(p)}</button>`,
+      )
+      .join("")}
+  </div>`;
+}
+
+function addAssistantMessage(html, followUps) {
   const el = document.createElement("div");
   el.className = "msg assistant";
   el.innerHTML = `
     <div class="avatar-row"><span class="avatar"></span><span class="model-name">epoundor-5-turbo</span></div>
     <div class="body">${html}</div>
+    ${followupRow(followUps)}
   `;
   thread.appendChild(el);
   scrollThreadToBottom();
@@ -472,12 +515,16 @@ function handleSubmit(rawText) {
   setTimeout(
     () => {
       typingEl.remove();
-      addAssistantMessage(entry ? entry.build() : fallbackResponse());
+      const followUps = entry
+        ? (entry.followUps ?? pickRandomFollowUps(3))
+        : pickRandomFollowUps(3);
+      addAssistantMessage(
+        entry ? entry.build() : fallbackResponse(),
+        followUps,
+      );
     },
     650 + Math.random() * 400,
   );
-
-  // suggest another question to ask
 }
 
 promptForm.addEventListener("submit", (e) => {
@@ -494,6 +541,12 @@ promptInput.addEventListener("keydown", (e) => {
 
 suggestions.addEventListener("click", (e) => {
   const btn = e.target.closest(".suggestion-chip");
+  if (!btn) return;
+  handleSubmit(btn.dataset.prompt);
+});
+
+thread.addEventListener("click", (e) => {
+  const btn = e.target.closest(".followup-chip");
   if (!btn) return;
   handleSubmit(btn.dataset.prompt);
 });
