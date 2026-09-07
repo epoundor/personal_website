@@ -5,6 +5,7 @@ const SPOTIFY_PLAYLIST_URL="https://open.spotify.com/playlist/5JIxTjQ6Mgv5nLd4yy
 const FAMILY_PHOTO_SRC = "epoundor_family.JPG";
 const GRASS_PHOTO_SRC = "epoundor_after_running.JPG";
 const CV_LINK = "https://docs.google.com/document/d/1PDHW-CzmBi-bVykSQidmtsimGjbUgSTqqX7UJkaT1C0/export?format=pdf";
+import { PROJECTS } from "./projects.js";
 
 const thread = document.getElementById("thread");
 const promptWrap = document.getElementById("promptWrap");
@@ -29,6 +30,9 @@ function makeId() {
 
 function footnote(text, refId) {
   return `<span class="footnote" data-ref="${refId}">${text}<sup>[${refId.split("-")[1]}]</sup></span>`;
+}
+function inlineSuggestion(text,prompt) {
+  return `<span class="inline-suggestion" data-prompt="${prompt}">${text}</span>`;
 }
 
 function refCard({ href, host, title, desc }) {
@@ -97,7 +101,7 @@ function getVariation(variations) {
 const RESPONSES = [
   {
     key: "facts",
-    triggers: ["top 5 facts", "top5 facts", "facts about him", "tell me about him", "fun facts"],
+    triggers: ["top 5 facts", "top5 facts", "facts about him", "tell me about him", "fun facts", "les 5 choses les plus intéressantes", "top 5 des choses les plus intéressantes","Quelques informations sur lui", "Dis-moi des choses sur lui"],
     build: () => {
       const variations = [
         `
@@ -197,12 +201,12 @@ const RESPONSES = [
       const grassRef = makeId();
       const contribId = `contrib-${Math.random().toString(36).slice(2, 9)}`;
       setTimeout(() => {
-        wireFootnotes();
+        wireFootnotesAndInlineSuggestion();
         loadContribGraph(contribId);
       }, 0);
       return `
         Keeps ${footnote("shipping commits", githubRef)} on the regular,
-        built a side project that actually got ${footnote("some real users", stakpassRef)},
+        built many side ${inlineSuggestion("projects","show me his projects")} that actually got ${footnote("some real users", stakpassRef)},
         lives with ${footnote("his fiancée and kids", familyRef)},
         and still finds time to ${footnote("touch grass", grassRef)} occasionally.
         ${contribGraphPlaceholder(contribId)}
@@ -232,6 +236,17 @@ const RESPONSES = [
       Add him on <a href="${LINKEDIN_URL}" target="_blank" rel="noopener noreferrer">LinkedIn</a>,
       follow him on <a href="https://github.com/${GITHUB_USERNAME}" target="_blank" rel="noopener noreferrer">GitHub</a>,
       or <a href="mailto:${EMAIL}">email him</a>.
+    `,
+  },
+   {
+    key: "projects",
+    triggers: ["projects", "show projects", "project", "show project", "show my projects", "list my projects", "list projects"],
+    build: () => `
+      Here are some of his projects.
+      <div class="project-grid">
+        ${ Object.entries(PROJECTS).map(([key, value]) => refCard({ href: value.link, host: value.link, title: key, desc: value.description })).join('')}
+      </div>
+      You can find more projects <a href="/projects">here</a>.
     `,
   },
 ];
@@ -289,7 +304,7 @@ function addAssistantMessage(html) {
   scrollThreadToBottom();
 }
 
-function wireFootnotes() {
+function wireFootnotesAndInlineSuggestion() {
   document.querySelectorAll(".footnote[data-ref]").forEach((node) => {
     if (node.dataset.wired) return;
     node.dataset.wired = "true";
@@ -298,6 +313,19 @@ function wireFootnotes() {
       if (target) target.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   });
+
+  document.querySelectorAll(".inline-suggestion[data-prompt]").forEach((node) => {
+    if (node.dataset.wired) return;
+    node.dataset.wired = "true";
+    node.addEventListener("click", () => {
+      const target = node.dataset.prompt;
+      promptInput.value = target;
+      handleSubmit(target);
+      promptInput.focus();
+    });
+  });
+
+
 }
 
 function dockPrompt() {
@@ -321,6 +349,9 @@ function handleSubmit(rawText) {
     typingEl.remove();
     addAssistantMessage(entry ? entry.build() : fallbackResponse());
   }, 650 + Math.random() * 400);
+
+  // suggest another question to ask
+  
 }
 
 promptForm.addEventListener("submit", (e) => {

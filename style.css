@@ -12,6 +12,8 @@
   --font-serif: 'Fraunces', Georgia, serif;
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --tooltip-bg: #FAF9F5;
+  --tooltip-color:#30291F;
   color-scheme: light;
 }
 
@@ -42,6 +44,8 @@
   --accent-hover: #EF9772;
   --accent-soft: #4A3728;
   --user-bubble: #3A362D;
+  --tooltip-bg: #26241E;
+  --tooltip-color: #F1EDE2;
   color-scheme: dark;
 }
 
@@ -173,6 +177,12 @@ html, body {
   margin-top: 14px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+.project-grid{
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 10px;
 }
 
@@ -325,6 +335,7 @@ html, body {
 .prompt-box {
   border-radius: 16px;
   border: 1px solid var(--border);
+  overflow: hidden;
   background: var(--surface);
   box-shadow: 0 10px 30px rgba(48, 41, 31, 0.08);
   overflow: hidden;
@@ -484,6 +495,36 @@ textarea#promptInput:focus {
   margin-top: 14px;
 }
 
+.inline-suggestion{
+  border-bottom: 2px dotted var(--accent);
+  cursor: pointer;
+  padding: 0 2px; 
+  border-radius: 5px;
+  position: relative;
+}
+.inline-suggestion:hover{
+  background-color: var(--accent-soft);
+}
+.inline-suggestion:hover::after{
+    content: attr(data-prompt);
+    text-align: center;
+    width: max-content;
+    bottom: calc(100% + 5px);
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 240px;
+    overflow: hidden;
+    padding: .5rem;
+    border-radius: .25rem;
+    box-shadow: 0 1px 4px #00000024;
+    background: var(--tooltip-bg);
+    color: var(--tooltip-color);
+    z-index: 1000;
+    font-size: .9em;
+    line-height: 1;
+    position: absolute;
+}
+
 .suggestion-chip {
   font-family: var(--font-sans);
   font-size: 13px;
@@ -538,6 +579,9 @@ textarea#promptInput:focus {
 @media (max-width: 400px) {
   .stage { padding: 12px; }
   .chip-row { padding: 12px 14px 0; }
+  .prompt-wrap{
+    padding: 12px;
+  }
   textarea#promptInput { margin: 12px 14px 0; width: calc(100% - 28px); }
   .controls-row { flex-wrap: wrap; row-gap: 10px; padding: 12px 14px; }
   .pill.ghost { padding: 0 8px; }
