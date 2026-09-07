@@ -2,8 +2,9 @@ const GITHUB_USERNAME = "epoundor";
 const LINKEDIN_URL = "https://www.linkedin.com/in/freedauss-epoundor-tanda/";
 const EMAIL = "freedausstanda@gmail.com";
 const SPOTIFY_PLAYLIST_URL="https://open.spotify.com/playlist/5JIxTjQ6Mgv5nLd4yy7F8e?utm_source=native-share-menu&pi=pdf7llMRS2eiE";
-const FAMILY_PHOTO_SRC = "epoundor_family.JPG";
-const GRASS_PHOTO_SRC = "epoundor_after_running.JPG";
+const FAMILY_PHOTO_SRC = "./images/epoundor_family.JPG";
+const GRASS_PHOTO_SRC = "./images/epoundor_after_running.JPG";
+const BRUH_PHOTO_SRC = "./images/bruh.gif";
 const CV_LINK = "https://docs.google.com/document/d/1PDHW-CzmBi-bVykSQidmtsimGjbUgSTqqX7UJkaT1C0/export?format=pdf";
 import { PROJECTS } from "./projects.js";
 
@@ -21,9 +22,9 @@ function escapeHtml(str) {
   return div.innerHTML;
 }
 
-function makeId() {
+function makeId(prefix = "ref") {
   refCounter += 1;
-  return `ref-${refCounter}`;
+  return `${prefix}-${refCounter}`;
 }
 
 /* ---------- reusable response fragments ---------- */
@@ -90,6 +91,38 @@ async function loadContribGraph(wrapId) {
     wrap.innerHTML = `<div class="contrib-caption">Couldn't load the live graph for github.com/${escapeHtml(GITHUB_USERNAME)}.</div>`;
     scrollThreadToBottom();
   }
+}
+
+async function fetchJokes() {
+  let language = navigator.language.split("-")[0] || "en";
+  const validLanguages = ["cs", "de", "es", "en", "pt", "fr"];
+  if (!validLanguages.includes(language)) {
+    language = "en";
+  }
+  
+  try {
+    const res = await fetch(`https://v2.jokeapi.dev/joke/Programming,Dark?lang=${language}&blacklistFlags=sexist,explicit&format=txt`);
+    if (!res.ok) throw new Error("bad response");
+    const joke = await res.text();
+    return joke;
+  } catch (err) {
+    return "Why did the programmer quit his job? Because he didn't get arrays.";
+  }
+}
+
+async function loadJokes(jokeId) {
+  const wrap = document.getElementById(jokeId);
+  if (!wrap) return;
+  
+  const joke = await fetchJokes();
+  const jokeElement = document.getElementById(jokeId);
+  jokeElement.innerHTML = `
+    <div class="joke-content">
+      <p>${joke}</p>
+    </div>
+  `;
+    // scrollThreadToBottom();
+
 }
 
 /* ---------- canned Q&A content ---------- */
@@ -171,7 +204,18 @@ const RESPONSES = [
 
     ]
     return getVariation(variations);
-  },
+  }},
+  {
+key: "jokes",
+triggers: ["joke", "tell me a joke", "say something funny"],
+  build:()=>{
+    const jokeId = makeId("joke");
+    setTimeout(() => {
+      loadJokes(jokeId);
+    }, 0);
+    return `<div id="${jokeId}" class="joke">
+           </div>`;
+  }
   },
   {
     key: "rewrite",
@@ -183,10 +227,10 @@ const RESPONSES = [
         "epoundor is an engineer who enjoys solving problems that probably didn't need solving, but does it well anyway. Equal parts curious and caffeinated, he's usually mid-refactor on something nobody asked him to touch.",
         "epoundor is a software engineer currently building useful and occasionally overengineered things. He writes on dev.to when inspiration (or a deadline) strikes, and is deeply invested in the current AI wave. Equal parts curious and caffeinated, he’s usually mid-refactor on something nobody asked him to touch.",
         "epoundor is a software engineer who enjoys solving problems that probably didn't need solving, but does it well anyway. Equal parts curious and caffeinated, he's usually mid-refactor on something nobody asked him to touch.",
-        "Epoundor TANDA is a senior Frontend Engineer with 6+ years of experience, having contributed to fintech and SaaS products deployed across 4+ West African countries, with a focus on application performance and user experience. I lead frontend teams, define engineering standards, and drive architecture end-to-end — from design to production.",
-        "Epoundor TANDA is a senior Frontend Engineer with over 6 years in the field, building fintech and SaaS products live in 4+ West African countries, focused on application performance and user experience. I mentor frontend teams, set engineering standards, and own architecture from design through to production.",
-        "Epoundor TANDA is a senior Frontend Engineer, 6+ years of experience shipping fintech and SaaS products across 4+ countries in West Africa, with a strong focus on app performance and UX. I lead frontend teams, establish engineering standards, and drive end-to-end architecture — from design to deployment.",
-        "Epoundor TANDA is a senior Frontend Engineer, 6+ years of experience, building fintech and SaaS products across West Africa, with a strong focus on application performance and user experience. I lead frontend teams, define engineering standards, and drive architecture from design to production.",
+        "Epoundor TANDA is a senior Frontend Engineer with 6+ years of experience, having contributed to fintech and SaaS products deployed across 4+ West African countries, with a focus on application performance and user experience. He lead frontend teams, define engineering standards, and drive architecture end-to-end — from design to production.",
+        "Epoundor TANDA is a senior Frontend Engineer with over 6 years in the field, building fintech and SaaS products live in 4+ West African countries, focused on application performance and user experience. He mentor frontend teams, set engineering standards, and own architecture from design through to production.",
+        "Epoundor TANDA is a senior Frontend Engineer, 6+ years of experience shipping fintech and SaaS products across 4+ countries in West Africa, with a strong focus on app performance and UX. He lead frontend teams, establish engineering standards, and drive end-to-end architecture — from design to deployment.",
+        "Epoundor TANDA is a senior Frontend Engineer, 6+ years of experience, building fintech and SaaS products across West Africa, with a strong focus on application performance and user experience. He lead frontend teams, define engineering standards, and drive architecture from design to production.",
       ];
       return getVariation(variations);
     },
@@ -249,6 +293,14 @@ const RESPONSES = [
       You can find more projects <a href="/projects">here</a>.
     `,
   },
+  {
+    key: "disgusting",
+    triggers: ["dick", "cock", "pussy", "slurpy","big black", "big black cock"],
+    build: () => `
+     Common rude boy, why would you ask that? 
+     ${photoCard({ src: BRUH_PHOTO_SRC, alt: "Bruh.", caption: "Bruh." })}
+    `,
+  }
 ];
 
 function matchResponse(input) {
