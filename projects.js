@@ -16,11 +16,11 @@ export const PROJECTS = {
     link: "https://hwekan.com/",
     image: "/images/projects/hwekan.png",
   },
-  "African Design School": {
+  "Africa Design School": {
     description:
       "Ecole de design, spécialisée dans la formation des architectes, designers et urbanistes africains.",
     image: "/images/projects/african-design-school.png",
-    link: "https://www.africandesign.school/",
+    link: "https://www.africadesign.school/",
   },
   EIG: {
     description:
