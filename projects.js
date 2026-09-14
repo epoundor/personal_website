@@ -16,15 +16,17 @@ export const PROJECTS = {
     link: "https://hwekan.com/",
     image: "/images/projects/hwekan.png",
   },
-  "ExcaliDraw Clone": {
-    description: "A real-time collaborative drawing application.",
-    link: "https://github.com/The-Open-Mafia/excalidraw_clone",
-    image: "/images/projects/excalidraw_clone.png",
+  "African Design School": {
+    description:
+      "Ecole de design, spécialisée dans la formation des architectes, designers et urbanistes africains.",
+    image: "/images/projects/african-design-school.png",
+    link: "https://www.africandesign.school/",
   },
-  "Vue Fetch": {
-    description: "A package that simplifies making HTTP requests in Vue.js.",
-    link: "https://github.com/epoundor/vue-fetch",
-    image: "/images/projects/vue-fetch.png",
+  EIG: {
+    description:
+      "EIG est un groupe africain privé d' enseignement technique, professionnel et universitaire",
+    image: "/images/projects/eig.png",
+    link: "https://eiggroupe.com/",
   },
 };
 
@@ -35,4 +37,14 @@ export const ALL_PROJECTS = {
     image: "/images/projects/Personal_Website.png",
   },
   ...PROJECTS,
+  "ExcaliDraw Clone": {
+    description: "A real-time collaborative drawing application.",
+    link: "https://github.com/The-Open-Mafia/excalidraw_clone",
+    image: "/images/projects/excalidraw_clone.png",
+  },
+  "Vue Fetch": {
+    description: "A package that simplifies making HTTP requests in Vue.js.",
+    link: "https://github.com/epoundor/vue-fetch",
+    image: "/images/projects/vue-fetch.png",
+  },
 };
