@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 – Space Invaders</title>
+  <style>
+    :root {
+      --text: #888;
+      --border: #888;
+      --bg: transparent;
+    }
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: var(--bg);
+      font-family: system-ui, -apple-system, sans-serif;
+      color: var(--text);
+    }
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      user-select: none;
+      touch-action: none;
+    }
+    h1 { margin: 0; font-size: 2rem; letter-spacing: .1em; }
+    p { margin: 0; font-size: .85rem; }
+    canvas {
+      background: transparent;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      max-width: 92vw;
+      max-height: 65vh;
+    }
+  </style>
+</head>
+<body>
+  <h1>404</h1>
+  <p>Page not found. Defend the page instead.</p>
+  <canvas id="c" width="320" height="360"></canvas>
+  <p id="info"></p>
+
+<script>
+  // Style/config via URL params, e.g. ?player=00ff00&enemy=ff00ff&bullet=fff&speed=150&cols=6&rows=3&lives=5&title=0
+  // Colors: hex without '#' (ff0000, f00) or any CSS color name/function (encoded).
+  const params = new URLSearchParams(location.search);
+  const color = (key, fallback) => {
+    let v = (params.get(key) || '').trim();
+    if (/^([0-9a-f]{3,4}|[0-9a-f]{6}|[0-9a-f]{8})$/i.test(v)) v = '#' + v;
+    return v && CSS.supports('color', v) ? v : fallback;
+  };
+  const num = (key, fallback, min, max) => {
+    const n = parseInt(params.get(key), 10);
+    return Number.isFinite(n) ? Math.min(max, Math.max(min, n)) : fallback;
+  };
+  const off = key => ['0', 'false', 'no'].includes(params.get(key));
+
+  const PLAYER_COLOR = color('player', '#22c55e');
+  const ENEMY_COLOR = color('enemy', '#a855f7');
+  const BULLET_COLOR = color('bullet', '#22c55e');
+  const ENEMY_BULLET_COLOR = color('enemybullet', '#ef4444');
+  const SPEED = num('speed', 100, 20, 300);   // % of base game speed
+  const COLS = num('cols', 8, 3, 12);
+  const ROWS = num('rows', 4, 1, 8);
+  const LIVES = num('lives', 3, 1, 9);
+  const rootStyle = document.documentElement.style;
+  rootStyle.setProperty('--text', color('text', '#888'));
+  rootStyle.setProperty('--border', color('border', '#888'));
+  rootStyle.setProperty('--bg', color('bg', 'transparent'));
+
+  const canvas = document.getElementById('c');
+  const ctx = canvas.getContext('2d');
+  const info = document.getElementById('info');
+  if (off('title')) document.querySelector('h1').hidden = document.querySelector('p').hidden = true;
+  if (off('border')) canvas.style.border = 'none';
+
+  const W = canvas.width, H = canvas.height;
+  const EW = 22, EH = 14, GAP = 10;      // enemy size and spacing
+  const PW = 26, PH = 12;                // player size
+  let player, bullets, enemyBullets, enemies, enemyDir, score, best = 0, lives, wave, over, started, keys, lastShot, last, touchX;
+
+  function reset() {
+    score = 0; lives = LIVES; wave = 1; over = false; started = false;
+    player = { x: W / 2 - PW / 2 };
+    bullets = []; enemyBullets = []; keys = {}; lastShot = 0; touchX = null;
+    spawnWave();
+    updateInfo('← → to move · Space to shoot');
+  }
+
+  function spawnWave() {
+    enemies = [];
+    const left = (W - (COLS * (EW + GAP) - GAP)) / 2;
+    for (let r = 0; r < ROWS; r++)
+      for (let c = 0; c < COLS; c++)
+        enemies.push({ x: left + c * (EW + GAP), y: 20 + r * (EH + GAP) });
+    enemyDir = 1;
+    enemyBullets = [];
+  }
+
+  function updateInfo(msg) {
+    info.textContent = `Score: ${score} · Best: ${best} · Lives: ${lives}` + (msg ? ` · ${msg}` : '');
+  }
+
+  function shoot(now) {
+    if (now - lastShot < 350) return;
+    lastShot = now;
+    bullets.push({ x: player.x + PW / 2, y: H - PH - 14 });
+  }
+
+  function lose() {
+    over = true;
+    best = Math.max(best, score);
+    updateInfo('Game over – Space / tap to retry');
+  }
+
+  function update(dt, now) {
+    const k = SPEED / 100;
+    // player
+    const move = 200 * dt;
+    if (touchX !== null) player.x += Math.max(-move, Math.min(move, touchX - PW / 2 - player.x));
+    if (keys.left) player.x -= move;
+    if (keys.right) player.x += move;
+    player.x = Math.max(0, Math.min(W - PW, player.x));
+    if (keys.fire || touchX !== null) shoot(now);
+
+    // player bullets
+    bullets.forEach(b => b.y -= 320 * dt);
+    bullets = bullets.filter(b => b.y > -8);
+
+    // enemies: speed grows as they die and with each wave
+    const alive = enemies.length;
+    const vx = (25 + (ROWS * COLS - alive) * 3 + wave * 8) * k;
+    let edge = false;
+    enemies.forEach(e => {
+      e.x += enemyDir * vx * dt;
+      if (e.x < 4 || e.x + EW > W - 4) edge = true;
+    });
+    if (edge) {
+      enemyDir *= -1;
+      enemies.forEach(e => { e.y += 10; e.x += enemyDir * 2; });
+    }
+
+    // enemy fire
+    if (alive && Math.random() < (0.6 + wave * 0.2) * k * dt) {
+      const e = enemies[Math.floor(Math.random() * alive)];
+      enemyBullets.push({ x: e.x + EW / 2, y: e.y + EH });
+    }
+    enemyBullets.forEach(b => b.y += 140 * k * dt);
+    enemyBullets = enemyBullets.filter(b => b.y < H + 8);
+
+    // bullet vs enemy
+    bullets = bullets.filter(b => {
+      const i = enemies.findIndex(e => b.x >= e.x && b.x <= e.x + EW && b.y >= e.y && b.y <= e.y + EH);
+      if (i < 0) return true;
+      enemies.splice(i, 1);
+      score += 10;
+      updateInfo('');
+      return false;
+    });
+
+    // enemy bullet vs player
+    const py = H - PH - 6;
+    enemyBullets = enemyBullets.filter(b => {
+      if (b.x < player.x || b.x > player.x + PW || b.y < py || b.y > py + PH) return true;
+      lives--;
+      updateInfo('');
+      if (lives <= 0) lose();
+      return false;
+    });
+
+    if (enemies.some(e => e.y + EH >= py)) lose();
+    if (!over && !enemies.length) { wave++; spawnWave(); updateInfo(`Wave ${wave}`); }
+  }
+
+  function draw() {
+    ctx.clearRect(0, 0, W, H);
+    ctx.fillStyle = PLAYER_COLOR;
+    const py = H - PH - 6;
+    ctx.fillRect(player.x, py, PW, PH);
+    ctx.fillRect(player.x + PW / 2 - 2, py - 5, 4, 5);
+    ctx.fillStyle = ENEMY_COLOR;
+    enemies.forEach(e => {
+      ctx.fillRect(e.x, e.y + 3, EW, EH - 6);
+      ctx.fillRect(e.x + 3, e.y, EW - 6, EH);
+      ctx.clearRect(e.x + 5, e.y + 4, 3, 3);
+      ctx.clearRect(e.x + EW - 8, e.y + 4, 3, 3);
+    });
+    ctx.fillStyle = BULLET_COLOR;
+    bullets.forEach(b => ctx.fillRect(b.x - 1, b.y, 2, 8));
+    ctx.fillStyle = ENEMY_BULLET_COLOR;
+    enemyBullets.forEach(b => ctx.fillRect(b.x - 1, b.y, 2, 8));
+  }
+
+  function frame(now) {
+    const dt = Math.min(0.05, (now - (last || now)) / 1000);
+    last = now;
+    if (started && !over) update(dt, now);
+    draw();
+    requestAnimationFrame(frame);
+  }
+
+  function begin() {
+    if (over) reset();
+    started = true;
+  }
+
+  const KEYS = { ArrowLeft: 'left', a: 'left', ArrowRight: 'right', d: 'right', ' ': 'fire' };
+  addEventListener('keydown', e => {
+    const k = KEYS[e.key] || KEYS[e.key.toLowerCase()];
+    if (!k) return;
+    e.preventDefault();
+    begin();
+    keys[k] = true;
+  });
+  addEventListener('keyup', e => {
+    const k = KEYS[e.key] || KEYS[e.key.toLowerCase()];
+    if (k) keys[k] = false;
+  });
+
+  // Touch: drag to move, the ship auto-fires while touching; tap to restart
+  const toGameX = t => (t.clientX - canvas.getBoundingClientRect().left) * W / canvas.getBoundingClientRect().width;
+  const touch = e => { begin(); touchX = toGameX(e.touches[0]); };
+  addEventListener('touchstart', touch, { passive: true });
+  addEventListener('touchmove', touch, { passive: true });
+  addEventListener('touchend', () => { touchX = null; });
+
+  reset();
+  requestAnimationFrame(frame);
+</script>
+</body>
+</html>
