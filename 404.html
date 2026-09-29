@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 – Mini-game</title>
+  <style>html,body{background:transparent;margin:0}</style>
+</head>
+<body>
+<script>
+  // Add a filename here to add a game; one game is picked per day.
+  const GAMES = ['snake'];
+
+  const day = Math.floor(Date.now() / 86400000);
+  const game = GAMES[day % GAMES.length];
+  // Forward query params (e.g. ?snake=ff0000) so embedders can style the game
+  location.replace('/404/' + game + '.html' + location.search);
+</script>
+<noscript><a href="/404/snake.html">404 – play a mini-game</a></noscript>
+</body>
+</html>
